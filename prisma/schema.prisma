@@ -1,0 +1,33 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model account {
+  id                                         String     @id(map: "Account_pkey") @default(uuid()) @db.Uuid
+  account_number                             String
+  account_agency                             String
+  owner                                      String     @db.Uuid
+  sector                                     sector     @relation(fields: [owner], references: [id], onUpdate: Restrict)
+  transfer_accountTotransfer_account_destiny transfer[] @relation("accountTotransfer_account_destiny")
+  transfer_accountTotransfer_account_origin  transfer[] @relation("accountTotransfer_account_origin")
+}
+
+model sector {
+  id      String    @id @default(uuid()) @db.Uuid
+  name    String
+  account account[]
+}
+
+model transfer {
+  id                                        String  @id @default(uuid()) @db.Uuid
+  account_origin                            String  @db.Uuid
+  account_destiny                           String  @db.Uuid
+  amount                                    String
+  account_accountTotransfer_account_destiny account @relation("accountTotransfer_account_destiny", fields: [account_destiny], references: [id], onUpdate: Restrict)
+  account_accountTotransfer_account_origin  account @relation("accountTotransfer_account_origin", fields: [account_origin], references: [id], onUpdate: Restrict)
+}
