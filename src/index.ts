@@ -26,7 +26,7 @@ async function main() {
   generateAccounts();
   generateTransfers();
 
-  // Delete all data previus in database
+  // Delete all data previous in database
   await client.transfer.deleteMany();
   await client.account.deleteMany();
   await client.sector.deleteMany();
@@ -55,7 +55,7 @@ function generateSectors() {
 // Function for generate fake accounts
 async function generateAccounts() {
   for (let i = 0; i < ACCOUNT_QUANTITY; i++) {
-    const index = Math.floor(Math.random() * sectors.length);
+    const index = Math.floor(Math.random() * SECTOR_QUANTITY);
 
     accounts.push({
       account_agency: faker.finance.account(5),
@@ -68,10 +68,10 @@ async function generateAccounts() {
 
 // Function for generate fake transfer
 async function generateTransfers() {
-  const indexAccountDestiny = Math.floor(Math.random() * ACCOUNT_QUANTITY);
-  const indexACcountOrigin = Math.floor(Math.random() * ACCOUNT_QUANTITY);
-
   for (let i = 0; i < TRANSFER_QUANTITY; i++) {
+    const indexAccountDestiny = Math.floor(Math.random() * ACCOUNT_QUANTITY);
+    const indexACcountOrigin = Math.floor(Math.random() * ACCOUNT_QUANTITY);
+
     transfers.push({
       account_origin: accounts[indexACcountOrigin].id,
       account_destiny: accounts[indexAccountDestiny].id,

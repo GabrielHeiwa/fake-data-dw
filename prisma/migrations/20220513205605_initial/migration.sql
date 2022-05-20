@@ -21,7 +21,7 @@ CREATE TABLE "transfer" (
     "id" UUID NOT NULL,
     "account_origin" UUID NOT NULL,
     "account_destiny" UUID NOT NULL,
-    "amount" DECIMAL NOT NULL,
+    "amount" TEXT NOT NULL,
 
     CONSTRAINT "transfer_pkey" PRIMARY KEY ("id")
 );
