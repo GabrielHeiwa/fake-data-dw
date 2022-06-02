@@ -7,27 +7,85 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model account {
-  id                                         String     @id(map: "Account_pkey") @default(uuid()) @db.Uuid
-  account_number                             String
-  account_agency                             String
-  owner                                      String     @db.Uuid
-  sector                                     sector     @relation(fields: [owner], references: [id], onUpdate: Restrict)
-  transfer_accountTotransfer_account_destiny transfer[] @relation("accountTotransfer_account_destiny")
-  transfer_accountTotransfer_account_origin  transfer[] @relation("accountTotransfer_account_origin")
+model cargos {
+  id            String          @id @db.Uuid
+  nome          String
+  colaboradores colaboradores[]
 }
 
-model sector {
-  id      String    @id @default(uuid()) @db.Uuid
-  name    String
-  account account[]
+model clientes {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nome       String
+  cpf        String    @unique
+  cidade     String
+  bairro     String
+  estado     String
+  nascimento DateTime  @db.Date
+  pedidos    pedidos[]
 }
 
-model transfer {
-  id                                        String  @id @default(uuid()) @db.Uuid
-  account_origin                            String  @db.Uuid
-  account_destiny                           String  @db.Uuid
-  amount                                    String
-  account_accountTotransfer_account_destiny account @relation("accountTotransfer_account_destiny", fields: [account_destiny], references: [id], onUpdate: Restrict)
-  account_accountTotransfer_account_origin  account @relation("accountTotransfer_account_origin", fields: [account_origin], references: [id], onUpdate: Restrict)
+model colaboradores {
+  id       String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nome     String
+  cpf      String    @unique
+  cargo    String    @db.Uuid
+  status   Boolean   @default(true)
+  admissao DateTime  @default(now()) @db.Date
+  demissao DateTime? @db.Date
+  cargos   cargos    @relation(fields: [cargo], references: [id], onUpdate: Restrict)
+  pedidos  pedidos[]
+}
+
+model fornecedores {
+  id   String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nome String
+  cnpj String @unique
+}
+
+model fornecedores_produtos {
+  id            String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  produto       String         @db.Uuid
+  quantidade    Int
+  preco         Decimal        @db.Decimal
+  nota_fiscal   String?
+  notas_fiscais notas_fiscais? @relation(fields: [nota_fiscal], references: [codigo], onDelete: Restrict, onUpdate: Restrict)
+  produtos      produtos       @relation(fields: [produto], references: [id], onUpdate: Restrict)
+}
+
+model notas_fiscais {
+  id                    String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  codigo                String                  @unique
+  fornecedores_produtos fornecedores_produtos[]
+  pedido_produtos       pedido_produtos[]
+}
+
+model pedido_produtos {
+  id                                      String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  produto                                 String         @db.Uuid
+  quantidade                              Int
+  pedido                                  String         @db.Uuid
+  nota_fiscal                             String?
+  notas_fiscais                           notas_fiscais? @relation(fields: [nota_fiscal], references: [codigo], onDelete: Restrict, onUpdate: Restrict)
+  pedidos_pedido_produtos_pedidoTopedidos pedidos        @relation("pedido_produtos_pedidoTopedidos", fields: [pedido], references: [id], onUpdate: Restrict)
+  produtos                                produtos       @relation(fields: [produto], references: [id], onUpdate: Restrict)
+}
+
+model pedidos {
+  id                                              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  colaborador                                     String            @db.Uuid
+  cliente                                         String            @db.Uuid
+  data                                            DateTime          @default(now()) @db.Date
+  forma_de_pagamento                              String
+  clientes                                        clientes          @relation(fields: [cliente], references: [id], onUpdate: Restrict)
+  colaboradores                                   colaboradores     @relation(fields: [colaborador], references: [id], onUpdate: Restrict)
+  pedido_produtos_pedido_produtos_pedidoTopedidos pedido_produtos[] @relation("pedido_produtos_pedidoTopedidos")
+}
+
+model produtos {
+  id                    String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nome                  String
+  preco                 Decimal                 @db.Decimal
+  quantidade            Int
+  fornecedores_produtos fornecedores_produtos[]
+  pedido_produtos       pedido_produtos[]
 }
