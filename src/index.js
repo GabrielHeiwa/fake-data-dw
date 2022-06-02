@@ -247,9 +247,6 @@ async function fake_pedidos_produtos() {
   console.time('Gerando os produtos dos pedidos...')
 
   for (let i = 0; i < PEDIDOS_PRODUTOS; i++) {
-    // @ts-ignore
-    const produto = dados['produtos'][faker.datatype.number({ min: 0, max: PRODUTOS - 1 })].id
-    // @ts-ignore
     const pedido = dados['pedidos'][faker.datatype.number({ min: 0, max: PEDIDOS - 1 })].id
 
     let nota_fiscal
@@ -267,7 +264,8 @@ async function fake_pedidos_produtos() {
     )
 
     for (let j = 0; j < faker.datatype.number({ min: 1, max: 6 }); j++) {
-      // @ts-ignore
+      const produto = dados['produtos'][faker.datatype.number({ min: 0, max: PRODUTOS - 1 })].id
+
       dados['pedido_produtos'].push({
         id: faker.datatype.uuid(),
         pedido,
