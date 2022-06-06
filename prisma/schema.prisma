@@ -14,78 +14,92 @@ model cargos {
 }
 
 model clientes {
-  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  nome       String
-  cpf        String    @unique
-  cidade     String
-  bairro     String
-  estado     String
-  nascimento DateTime  @db.Date
-  pedidos    pedidos[]
+  id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nome             String
+  cpf              String             @unique
+  cidade           String
+  bairro           String
+  estado           String
+  nascimento       DateTime           @db.Date
+  pedidos_clientes pedidos_clientes[]
 }
 
 model colaboradores {
-  id       String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  nome     String
-  cpf      String    @unique
-  cargo    String    @db.Uuid
-  status   Boolean   @default(true)
-  admissao DateTime  @default(now()) @db.Date
-  demissao DateTime? @db.Date
-  cargos   cargos    @relation(fields: [cargo], references: [id], onUpdate: Restrict)
-  pedidos  pedidos[]
+  id                   String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nome                 String
+  cpf                  String                 @unique
+  cargo                String                 @db.Uuid
+  status               Boolean                @default(true)
+  admissao             DateTime               @default(now()) @db.Date
+  demissao             DateTime?              @db.Date
+  cargos               cargos                 @relation(fields: [cargo], references: [id], onUpdate: Restrict)
+  pedidos_clientes     pedidos_clientes[]
+  pedidos_fornecedores pedidos_fornecedores[]
 }
 
 model fornecedores {
-  id   String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  nome String
-  cnpj String @unique
-}
-
-model fornecedores_produtos {
-  id            String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  produto       String         @db.Uuid
-  quantidade    Int
-  preco         Decimal        @db.Decimal
-  nota_fiscal   String?
-  notas_fiscais notas_fiscais? @relation(fields: [nota_fiscal], references: [codigo], onDelete: Restrict, onUpdate: Restrict)
-  produtos      produtos       @relation(fields: [produto], references: [id], onUpdate: Restrict)
+  id                   String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nome                 String
+  cnpj                 String                 @unique
+  pedidos_fornecedores pedidos_fornecedores[]
 }
 
 model notas_fiscais {
-  id                    String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  codigo                String                  @unique
-  fornecedores_produtos fornecedores_produtos[]
-  pedido_produtos       pedido_produtos[]
-}
-
-model pedido_produtos {
-  id                                      String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  produto                                 String         @db.Uuid
-  quantidade                              Int
-  pedido                                  String         @db.Uuid
-  nota_fiscal                             String?
-  notas_fiscais                           notas_fiscais? @relation(fields: [nota_fiscal], references: [codigo], onDelete: Restrict, onUpdate: Restrict)
-  pedidos_pedido_produtos_pedidoTopedidos pedidos        @relation("pedido_produtos_pedidoTopedidos", fields: [pedido], references: [id], onUpdate: Restrict)
-  produtos                                produtos       @relation(fields: [produto], references: [id], onUpdate: Restrict)
-}
-
-model pedidos {
-  id                                              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  colaborador                                     String            @db.Uuid
-  cliente                                         String            @db.Uuid
-  data                                            DateTime          @default(now()) @db.Date
-  forma_de_pagamento                              String
-  clientes                                        clientes          @relation(fields: [cliente], references: [id], onUpdate: Restrict)
-  colaboradores                                   colaboradores     @relation(fields: [colaborador], references: [id], onUpdate: Restrict)
-  pedido_produtos_pedido_produtos_pedidoTopedidos pedido_produtos[] @relation("pedido_produtos_pedidoTopedidos")
+  id                   String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  codigo               String                @unique
+  pedidos_clientes     pedidos_clientes?
+  pedidos_fornecedores pedidos_fornecedores?
 }
 
 model produtos {
-  id                    String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  nome                  String
-  preco                 Decimal                 @db.Decimal
-  quantidade            Int
-  fornecedores_produtos fornecedores_produtos[]
-  pedido_produtos       pedido_produtos[]
+  id                            String                          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nome                          String
+  preco                         Decimal                         @db.Decimal
+  quantidade                    Int
+  pedidos_clientes_produtos     pedidos_clientes_produtos[]
+  pedidos_fornecedores_produtos pedidos_fornecedores_produtos[]
+}
+
+model pedidos_clientes {
+  id                   String        @id(map: "pedidos_pkey") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  colaborador_id       String        @db.Uuid
+  cliente_id           String        @db.Uuid
+  data                 DateTime      @default(now()) @db.Date
+  notas_fiscais_codigo String        @unique(map: "pedido_clientes_notas_fiscais_codigo_key")
+  codigo               String        @unique(map: "pedido_clientes_codigo_key")
+  clientes             clientes      @relation(fields: [cliente_id], references: [id], onUpdate: Restrict, map: "pedidos_cliente_fkey")
+  colaboradores        colaboradores @relation(fields: [colaborador_id], references: [id], onUpdate: Restrict, map: "pedidos_colaborador_fkey")
+  notas_fiscais        notas_fiscais @relation(fields: [notas_fiscais_codigo], references: [codigo], onUpdate: Restrict)
+}
+
+model pedidos_clientes_produtos {
+  id                      String   @id(map: "pedido_produtos_pkey") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  produto_id              String   @db.Uuid
+  quantidade              Int
+  pedidos_clientes_codigo String
+  total                   Decimal  @db.Decimal
+  produtos                produtos @relation(fields: [produto_id], references: [id], onUpdate: Restrict, map: "pedido_produtos_produto_fkey")
+}
+
+model pedidos_fornecedores {
+  id                            String                          @id(map: "pedido_fornecedores_pkey") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  codigo                        String                          @unique(map: "pedido_fornecedores_codigo_key")
+  fornecedor_id                 String                          @db.Uuid
+  colaborador_id                String                          @db.Uuid
+  data                          DateTime                        @default(now()) @db.Date
+  notas_fiscais_codigo          String                          @unique(map: "pedido_fornecedores_notas_fiscais_codigo_key")
+  colaboradores                 colaboradores                   @relation(fields: [colaborador_id], references: [id], onUpdate: Restrict, map: "pedido_fornecedores_colaborador_id_fkey")
+  fornecedores                  fornecedores                    @relation(fields: [fornecedor_id], references: [id], onUpdate: Restrict, map: "pedido_fornecedores_fornecedor_id_fkey")
+  notas_fiscais                 notas_fiscais                   @relation(fields: [notas_fiscais_codigo], references: [codigo], onUpdate: Restrict, map: "pedido_fornecedores_notas_fiscais_codigo_fkey")
+  pedidos_fornecedores_produtos pedidos_fornecedores_produtos[]
+}
+
+model pedidos_fornecedores_produtos {
+  id                          String               @id(map: "fornecedores_produtos_pkey") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  produto_id                  String               @db.Uuid
+  quantidade                  Int
+  pedidos_fornecedores_codigo String
+  total                       Decimal              @db.Decimal
+  pedidos_fornecedores        pedidos_fornecedores @relation(fields: [pedidos_fornecedores_codigo], references: [codigo], onUpdate: Restrict, map: "pedido_fornecedores_produtos_pedido_fornecedores_codigo_fkey")
+  produtos                    produtos             @relation(fields: [produto_id], references: [id], onUpdate: Restrict, map: "fornecedores_produtos_produto_fkey")
 }

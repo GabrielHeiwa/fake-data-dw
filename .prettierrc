@@ -1,3 +1,5 @@
 {
-  "rangeEnd": 120
+  "rangeEnd": 120,
+  "semi": false,
+  "singleQuote": false
 }
